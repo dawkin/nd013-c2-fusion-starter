@@ -48,18 +48,30 @@ class Sensor:
         # otherwise False.
         ############
 
-        return True
+        pos_veh = np.ones((4, 1)) # homogeneous coordinates
+        pos_veh[0:3] = x[0:3] 
+        pos_sens = self.veh_to_sens*pos_veh # transform from vehicle to sensor coordinates
+        # make sure to not divide by zero - we can exclude the whole negative x-range here
+        if pos_sens[0] > 0: 
+            alpha = np.arctan(pos_sens[1]/pos_sens[0]) # calc angle between object and x-axis
+            # no normalization needed because returned alpha always lies between [-pi/2, pi/2]
+            if alpha > self.fov[0] and alpha < self.fov[1]:
+                return True
+                
+        return False
         
         ############
         # END student code
         ############ 
              
     def get_hx(self, x):    
-        # calculate nonlinear measurement expectation value h(x)   
-        if self.name == 'lidar':
-            pos_veh = np.ones((4, 1)) # homogeneous coordinates
-            pos_veh[0:3] = x[0:3] 
-            pos_sens = self.veh_to_sens*pos_veh # transform from vehicle to lidar coordinates
+        # calculate nonlinear measurement expectation value h(x)  
+        
+        pos_veh = np.ones((4, 1)) # homogeneous coordinates
+        pos_veh[0:3] = x[0:3] 
+        pos_sens = self.veh_to_sens*pos_veh # transform from vehicle to lidar coordinates
+        
+        if self.name == 'lidar':  
             return pos_sens[0:3]
         elif self.name == 'camera':
             
@@ -70,8 +82,15 @@ class Sensor:
             # - make sure to not divide by zero, raise an error if needed
             # - return h(x)
             ############
+            
+            hx = np.zeros((2,1))
 
-            pass
+            if x[0]==0:
+                raise NameError('Jacobian not defined for x[0]=0!')
+            else:
+                hx[0,0] = self.c_i - self.f_i*pos_sens[1]/pos_sens[0] # project to image coordinates
+                hx[1,0] = self.c_j - self.f_j*pos_sens[2]/pos_sens[0]
+                return hx    
         
             ############
             # END student code
@@ -114,10 +133,9 @@ class Sensor:
         ############
         # TODO Step 4: remove restriction to lidar in order to include camera as well
         ############
-        
-        if self.name == 'lidar':
-            meas = Measurement(num_frame, z, self)
-            meas_list.append(meas)
+       
+        meas = Measurement(num_frame, z, self)
+        meas_list.append(meas)
         return meas_list
         
         ############
@@ -132,6 +150,7 @@ class Measurement:
     def __init__(self, num_frame, z, sensor):
         # create measurement object
         self.t = (num_frame - 1) * params.dt # time
+        self.sensor = sensor # sensor that generated this measurement
         if sensor.name == 'lidar':
             sigma_lidar_x = params.sigma_lidar_x # load params
             sigma_lidar_y = params.sigma_lidar_y
@@ -140,7 +159,6 @@ class Measurement:
             self.z[0] = z[0]
             self.z[1] = z[1]
             self.z[2] = z[2]
-            self.sensor = sensor # sensor that generated this measurement
             self.R = np.matrix([[sigma_lidar_x**2, 0, 0], # measurement noise covariance matrix
                                 [0, sigma_lidar_y**2, 0], 
                                 [0, 0, sigma_lidar_z**2]])
@@ -155,7 +173,11 @@ class Measurement:
             # TODO Step 4: initialize camera measurement including z, R, and sensor 
             ############
 
-            pass
+            self.z = np.zeros((sensor.dim_meas,1))
+            self.z[0] = z[0]
+            self.z[1] = z[1]
+            self.R = np.matrix([[params.sigma_cam_i**2, 0],
+                                [0, params.sigma_cam_j**2]])
         
             ############
             # END student code
