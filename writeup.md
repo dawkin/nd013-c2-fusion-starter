@@ -20,8 +20,16 @@ Features:
 - front bump
 - rear bump
 - mirrors
+- rooftop
 
-![alt text](/img/pcl_images_features.png "PCL capture features")
+![alt text](/img/pcl_images_rear.PNG-mh.png "PCL capture features")
+![alt text](/img/pcl_images.PNG-mh_0.png "PCL capture features")
+![alt text](/img/pcl_images.PNG-mh_1.png "PCL capture features")
+![alt text](/img/pcl_images.PNG-mh_2.png "PCL capture features")
+![alt text](/img/pcl_images.PNG-mh_3.png "PCL capture features")
+![alt text](/img/pcl_images.PNG-mh_4.png "PCL capture features")
+![alt text](/img/pcl_images.PNG-mh_5.png "PCL capture features")
+![alt text](/img/pcl_images.PNG-mh_6.png "PCL capture features")
 
 
 # Track 3D-Objects Over Time
